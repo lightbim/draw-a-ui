@@ -28,7 +28,9 @@ export async function POST(request: Request) {
 
   let json = null;
   try {
-    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 设置一个超时时间（例如：8000 毫秒）
+    const timeout = 80000;
+    const fetchPromise = fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -36,9 +38,29 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify(body),
     });
-    json = await resp.json();
+
+   const timeoutSignal = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timed out'));
+      }, timeout);
+    });
+
+   const response = await Promise.race([fetchPromise, timeoutSignal]);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+   
+    json = await response.json();
   } catch (e) {
     console.log(e);
+   // 在这里处理请求失败的情况，包括超时或网络错误
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 408, // 可以使用适当的 HTTP 状态码
+      headers: {
+        "content-type": "application/json; charset=UTF-8",
+      },
+    });
   }
 
   return new Response(JSON.stringify(json), {
