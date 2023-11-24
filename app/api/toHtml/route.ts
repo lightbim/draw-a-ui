@@ -39,19 +39,24 @@ export async function POST(request: Request) {
       body: JSON.stringify(body),
     });
 
-   const timeoutSignal = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        reject(new Error('Request timed out'));
-      }, timeout);
-    });
+   // Create a promise that rejects after a timeout
+    const timeoutSignal = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timed out')), timeout)
+    );
 
-   const response = await Promise.race([fetchPromise, timeoutSignal]);
+    // Use Promise.race to allow either the fetch call or the timeout to happen first
+    const result = await Promise.race([fetchPromise, timeoutSignal]);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // Check if the result is actually a Response object
+    if (result instanceof Response) {
+      if (!result.ok) {
+        throw new Error(`HTTP error! status: ${result.status}`);
+      }
+      json = await result.json();
+    } else {
+      // Handle the case where the timeout triggered an error
+      throw result;
     }
-   
-    json = await response.json();
   } catch (e) {
     console.log(e);
    // 在这里处理请求失败的情况，包括超时或网络错误
