@@ -59,13 +59,13 @@ export async function POST(request: Request) {
     }
   } catch (e) {
     console.log(e);
-   // 在这里处理请求失败的情况，包括超时或网络错误
-    return new Response(JSON.stringify({ error: e.message }), {
-      status: 408, // 可以使用适当的 HTTP 状态码
-      headers: {
-        "content-type": "application/json; charset=UTF-8",
-      },
-    });
+   // // 在这里处理请求失败的情况，包括超时或网络错误
+   //  return new Response(JSON.stringify({ error: e.message }), {
+   //    status: 408, // 可以使用适当的 HTTP 状态码
+   //    headers: {
+   //      "content-type": "application/json; charset=UTF-8",
+   //    },
+   //  });
   }
 
   return new Response(JSON.stringify(json), {
